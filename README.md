@@ -1,52 +1,74 @@
-# Image Cropper for Letter Scans
+# 🖼️ FastAPI Image Cropper
 
-This script is designed to crop scanned letter images into two parts:
-1. The **header** section containing the name, address, and date.
-2. The **body** section containing the handwritten message.
+This FastAPI application allows you to upload an image (e.g., a handwritten letter), automatically crops it into two sections (header and body), and provides download links for the resulting PNG images.
 
-## 🧾 How It Works
+---
 
-The script uses Python's `PIL` library to:
-- Load the original image.
-- Define and extract two regions:
-  - The header (top portion).
-  - The body (rest of the letter).
-- Save both parts as separate image files.
+## 🚀 Features
 
-## 📁 Files
+- Upload an image via a POST request.
+- Automatically crops:
+  - The **header** (top portion).
+  - The **body** (main content).
+- Returns direct download links for both cropped images.
 
-- `image.png`: The input image to be processed.
-- `image_header.png`: The cropped header section.
-- `image_body.png`: The cropped body section.
+---
 
-## ▶️ Usage
+## 📦 Requirements
 
-1. Make sure you have Python installed.
-2. Install the required package:
-   ```bash
-   pip install Pillow
+Install all dependencies with:
+
+```bash
+pip install fastapi uvicorn pillow python-multipart
 
 
-Place image.png in the same folder as the script.
+project/
+│
+├── main.py             # FastAPI application
+├── image.png           # (Uploaded input image - optional)
+├── image_header.png    # (Cropped header - auto-generated)
+├── image_body.png      # (Cropped body - auto-generated)
+└── README.md
 
-Run the script:
+Activate your virtual environment (optional but recommended):
+.\venv\Scripts\activate
 
-bash
-Copiar
-Editar
-python crop_letter.py
-Two new image files will be created:
+Run the FastAPI app using Uvicorn:
+uvicorn main:app --reload
 
-image_header.png
+🔄 API Endpoints
+POST /crop-image/
+Upload a PNG image and receive links to download the cropped sections.
 
-image_body.png
+Form field:
+file: The image file (PNG recommended)
 
-✏️ Customize
-If your images have a different layout, you can adjust the cropping coordinates in the script:
+Response:
+{
+  "header_download_url": "/download/header",
+  "body_download_url": "/download/body"
+}
+GET /download/header
+Downloads the cropped header section as image_header.png.
 
-python
-Copiar
-Editar
-header_box = (0, int(height * 0.12), width, int(height * 0.30))
-body_box = (0, int(height * 0.31), width, height)
-These values represent percentages of the image height and can be fine-tuned to match your needs.
+GET /download/body
+Downloads the cropped body section as image_body.png.
+
+📌 Notes
+Cropping is based on fixed relative height percentages:
+
+Header: 12% to 30%
+
+Body: 31% to bottom
+
+These values can be customized in the main.py file.
+
+🧰 Dependencies Used
+FastAPI
+
+Uvicorn
+
+Pillow (PIL)
+
+python-multipart
+
