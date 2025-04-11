@@ -1,21 +1,49 @@
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
+import os
 
-# Load the original image
-input_path = "image.png"
-img = Image.open(input_path)
-width, height = img.size
+app = FastAPI()
 
-# Define crop coordinates for the top (header) and bottom (body) sections
-header_box = (0, int(height * 0.12), width, int(height * 0.30))  # adjusted to skip the title
+# Enable CORS (optional for testing in browser)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Bottom part: the handwritten letter
-body_box = (0, int(height * 0.31), width, height)
+@app.post("/crop-image/")
+async def crop_image(file: UploadFile = File(...)):
+    input_path = "image.png"
+    with open(input_path, "wb") as f:
+        f.write(await file.read())
 
-# Crop and save
-header = img.crop(header_box)
-body = img.crop(body_box)
+    # Load the image
+    img = Image.open(input_path)
+    width, height = img.size
 
-header.save("image_header.png")
-body.save("image_body.png")
+    # Crop coordinates
+    header_box = (0, int(height * 0.12), width, int(height * 0.30))
+    body_box = (0, int(height * 0.31), width, height)
 
-print("✅ Cropped images saved as image_header.png and image_body.png")
+    # Crop and save
+    header_path = "image_header.png"
+    body_path = "image_body.png"
+    img.crop(header_box).save(header_path)
+    img.crop(body_box).save(body_path)
+
+    # You can return one or both images here — let's return the body for now
+    return {
+        "header_download_url": "/download/header",
+        "body_download_url": "/download/body"
+    }
+
+@app.get("/download/header", response_class=FileResponse)
+def download_header():
+    return FileResponse("image_header.png", media_type="image/png", filename="image_header.png")
+
+@app.get("/download/body", response_class=FileResponse)
+def download_body():
+    return FileResponse("image_body.png", media_type="image/png", filename="image_body.png")
